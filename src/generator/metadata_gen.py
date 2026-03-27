@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
-import utils
+import src.utils as utils
 
 from pathlib import Path
-from config.rawdataschemas import Product, Store
+from config.schemas.raw import Product, Store
 
 script = Path(__file__).resolve().parent
 
@@ -144,4 +144,9 @@ def generate_product_metadata_random(n_products):
     df = pd.concat([df, df2])
     df.to_csv(metadata_csv_dir, index=False)
     
+    return
+
+# TRANSACTION DATA HANDLING
+
+def generate_transaction_data_by_year(year):
     return
