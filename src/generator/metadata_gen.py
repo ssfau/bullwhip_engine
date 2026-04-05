@@ -10,34 +10,22 @@ script = Path(__file__).resolve().parent
 # META DATA HANDLING
 
 """
-this function returns dataframe from within the csv file
+this function returns dataframe of a csv by automatically selecting type
 """
-def define_metadata_csv(type):
-    metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'store.csv'
+def get_df_metadata_csv(type):
+    csv_path = script.parent / 'data' / 'raw' / 'metadata'
     if type == "store":
-        metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'store.csv'
+        csv_path = csv_path / 'store.csv'
     elif type == "product":
-        metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'product.csv'
-    
-    with open(metadata_csv_dir, "a") as file:
-        # read csv to generate product id
-        df = pd.read_csv(metadata_csv_dir)
+        csv_path = csv_path / 'product.csv'
+    else:
+        raise ValueError("Invalid type")
 
-    return df
-
-"""
-this function inserts new rows (LIST ONLY) into a csv file
-"""
-def insert_metadata_csv(type, df, datalist):
-    metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'store.csv'
-    if type == "store":
-        metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'store.csv'
-    elif type == "product":
-        metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'product.csv'
+    with open(csv_path, "a") as file:
+        # read csv to generate store id
+        df = pd.read_csv(csv_path)
     
-    df2 = pd.DataFrame(datalist)
-    df = pd.concat([df, df2])
-    df.to_csv(metadata_csv_dir, index=False)
+    return df, csv_path
 
 """
 this function generates STORE metadata and writes it into the csv
@@ -47,12 +35,9 @@ this function generates STORE metadata and writes it into the csv
 - random generation exists only, no manual input
 """
 def generate_store_metadata(n_stores):
-    metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'store.csv'
+    df, csvpath = get_df_metadata_csv("store")
 
-    with open(metadata_csv_dir, "a") as file:
-        # read csv to generate store id
-        df = pd.read_csv(metadata_csv_dir)
-
+    # store id generation
     newdatalist = []
     currentstoreid = len(df)+1
 
@@ -72,7 +57,7 @@ def generate_store_metadata(n_stores):
 
     df2 = pd.DataFrame(newdatalist)
     df = pd.concat([df, df2])
-    df.to_csv(metadata_csv_dir, index=False)
+    df.to_csv(csvpath, index=False)
     
     return
 
@@ -82,17 +67,18 @@ this function generates PRODUCT metadata and writes it into the csv
 - generates random with fixed values according to the given schema
 - both random and manual key in exists
 """
-def generate_product_metadata(product_name, unit_cost, unit_price, shelf_life_days, min_order_qty, base_lead_time):
+def generate_product_metadata_manual(product_name, unit_cost, unit_price, shelf_life_days, min_order_qty, base_lead_time):
     # check if csv exists
-    metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'product.csv'
+    df, csvpath = get_df_metadata_csv("store")
 
-    with open(metadata_csv_dir, "a") as file:
-        # read csv to generate product id
-        df = pd.read_csv(metadata_csv_dir)
-
+    # store id generation
     newdatalist = []
     currentproductid = len(df)+1
 
+    if product_name == None:
+        product_name = "product_" + str(currentproductid)
+
+    # assign dictionaries for each column
     new_row_data = {
         'product_id': currentproductid,
         'product_name': product_name or ("product_" + str(currentproductid)),
@@ -106,47 +92,18 @@ def generate_product_metadata(product_name, unit_cost, unit_price, shelf_life_da
     newdatalist.append(new_row_data)
     df2 = pd.DataFrame(newdatalist)
     df = pd.concat([df, df2])
-    df.to_csv(metadata_csv_dir, index=False)
+    df.to_csv(csvpath, index=False)
     
     return
 
-def generate_product_metadata_random(n_products):
-    # check if csv exists
-    metadata_csv_dir = script.parent / 'data' / 'raw' / 'metadata' / 'product.csv'
-    with open(metadata_csv_dir, "a") as file:
-        # read csv to generate product id
-        df = pd.read_csv(metadata_csv_dir)
+# random generation extension
+def generate_product_metadata(n_products):
+    generate_product_metadata_manual(
+        None,                       # product_name
+        np.random.randint(1,5),     # unit_cost
+        10, # placeholder           # unit_price
+        np.random.randint(5,14),    # shelf_life_days
+        np.random.randint(15, 20),  # min_order_qty
+        10, # placeholder           # base_lead_time
+    )
 
-    # read csv to generate product id
-    df = pd.read_csv(metadata_csv_dir)
-    newdatalist = []
-    currentproductid = len(df)+1
-
-    # assign dictionaries for each column
-    for i in range(n_products):
-        new_row_data = {
-            'product_id': currentproductid,
-            'product_name': "product_" + str(currentproductid),
-            'unit_cost': np.random.randint(1,5),
-            'unit_price': 10, # placeholder
-            'shelf_life_days': np.random.randint(5,14),
-            'min_order_qty': np.random.randint(15, 20),
-            'base_lead_time': 10, # placeholder
-        }
-
-        new_row_data['unit_price'] = new_row_data['unit_cost'] * utils.rng.uniform(1.05,1.4)
-        new_row_data['base_lead_time'] = np.random.randint(1,3)
-        
-        newdatalist.append(new_row_data)
-        currentproductid += 1
-
-    df2 = pd.DataFrame(newdatalist)
-    df = pd.concat([df, df2])
-    df.to_csv(metadata_csv_dir, index=False)
-    
-    return
-
-# TRANSACTION DATA HANDLING
-
-def generate_transaction_data_by_year(year):
-    return
