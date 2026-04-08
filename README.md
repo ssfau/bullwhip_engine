@@ -1,0 +1,1 @@
+for complexity issues, every store sells the same products, however i plan to configure this later

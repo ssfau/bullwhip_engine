@@ -1,4 +1,8 @@
+for every store:
+
 1. Load store metadata (store_id, capacity, reorder_point, delay_prob)
+
+for every product:
 
 2. Load product metadata (shelf_life, lead_time, min_order_qty)
 
