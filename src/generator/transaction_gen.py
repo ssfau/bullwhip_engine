@@ -9,7 +9,7 @@ from config.schemas.raw import Transaction
 script = Path(__file__).resolve().parent
 
 # TRANSACTION DATA HANDLING
-""" this function returns dataframe of a csv by automatically selecting type """
+""" this function returns dataframe of a metadata csv by automatically selecting type """
 def get_df_metadata_csv(type):
     csv_path = script.parent / 'data' / 'raw' / 'metadata'
     if type == "store":
@@ -23,6 +23,24 @@ def get_df_metadata_csv(type):
     
     return df
 
+# TRANSACTION DATA HANDLING
+""" this function appends dataframe to """
+def append_transaction_df(df, store_name, year):
+    folder_path = Path(script.parent / 'data' / 'raw' / 'transactions' / store_name)
+    csv_path = folder_path / str(store_name + "_" + year)
+
+    if folder_path.is_dir():
+        print("Folder exists.")
+        df.to_csv(csv_path, mode='a', index=False, header=True)
+    else:
+        print("Folder does not exist.")
+        df.to_csv(csv_path, mode='a', index=False, header=True)
+
+
+"""
+this function generates synthetic transaction data for a given store, by year
+will be used by the populator function
+"""
 def generate_transaction_data_store_by_year(store_id, year):
     # loading variables
 
@@ -120,7 +138,18 @@ def generate_transaction_data_store_by_year(store_id, year):
             else:
                 units_ordered = 0
 
-            # row append placeholder
+            # row append
+            transactionlist = [
+                day.date,
+                store_id,
+                productrow.product_id,
+                actual_demand,
+                sales_fulfilled,
+                stockout_units,
+                #inven
+            ]
+            transactiondf = []
+            append_transaction_df(transactiondf, row.store_name, year)
 
             # update state
             product_state[pid]['opening_stock'] = closing_stock
